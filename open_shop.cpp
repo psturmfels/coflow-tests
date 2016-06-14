@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <utility>
 #include <limits>
+#include <stdlib.h>
+#include <time.h>
 
 using namespace std;
 
@@ -10,12 +12,14 @@ class COS_job {
 public:
     vector<int> processing_times;
     double weight;
-    bool is_scheduled;
 
-    COS_job(const double w, &vector<int> pi) {
+    COS_job(const double w, vector<int> &pi) {
         processing_times = move(pi);
         weight = w;
-        is_scheduled = false;
+    }
+    
+    COS_job() {
+        weight = -1;
     }
 };
 
@@ -23,12 +27,39 @@ class COS_solution {
 public:
     vector<int> order;
     vector<int> completion_times;
+    double wct;
+    int num_jobs;
     
-    COS_solution(int num_jobs) {
+    COS_solution(const int N) {
+        num_jobs = N;
         order.resize(num_jobs);
         completion_times.resize(num_jobs);
+        wct = 0;
     }
-}
+    
+    COS_solution(const int N, const double w, vector<int> &o, vector<int> &ct) {
+        num_jobs = N;
+        wct = w;
+        order = move(o);
+        completion_times = move(ct);
+    }
+    
+    void print(const vector<COS_job> &jobs) {
+        cout << "Orders: ";
+        for (int j = 0; j < num_jobs; ++j) {
+            cout << (order[j] + 1) << " ";
+        }
+        cout << endl << "Weights: ";
+        for (int j = 0; j < num_jobs; ++j) {
+            cout << jobs[order[j]].weight << " ";
+        }
+        cout << "\nCtimes: ";
+        for (int j = 0; j < num_jobs; ++j) {
+            cout << completion_times[j] << " ";
+        }
+        cout << "\nSum of weighted completions times: " << wct << endl;
+    }
+};
 
 class COS_instance {
 public:
@@ -36,19 +67,84 @@ public:
     int num_machines;
     int num_jobs;
     
-    COS_instance(const int N, const int M, &vector<COS_job> j) {
+    COS_instance(const int N, const int M, vector<COS_job> &j) {
         num_jobs = N;
         num_machines = M;
-        jobs = move(j);
+        jobs = j;
     }
     
+    void print() {
+        cout << "Jobs across, machines down\n";
+        cout << "  ";
+        
+        for (int i = 0; i < num_machines; ++i)
+        {
+            cout << (i + 1) << "  ";
+        }
+        cout << endl;
+        for (int j = 0; j < num_jobs; ++j) {
+            cout << (j + 1) << " ";
+            for (int i = 0; i < num_machines; ++i) {
+                cout << jobs[j].processing_times[i] << " ";
+            }
+            cout << endl;
+        }
+        cout << "Weights: ";
+        for (int j = 0; j < num_jobs; ++j) {
+            cout << jobs[j].weight << " ";
+        }
+        cout << endl;
     
-    COS_solution solve() {
+    }
+    
+    COS_solution solve() const {
+        int best_wct = numeric_limits<int>::max();
+        vector<int> job_orders(num_jobs);
+        vector<int> completion_times(num_jobs);
+        
+        for(int j = 0; j < num_jobs; ++j) {
+            job_orders[j] = j;
+        }
+        vector<int> best_order = job_orders;
+        vector<int> best_ct = completion_times;
+        
+        //Try every permutation
+        do {
+            int wct = 0;
+            for (int j = 0; j < num_jobs; ++j) {
+                int max_ct = 0;
+                for (int i = 0; i < num_machines; ++i) {
+                    int cti = 0;
+                    for (int k = 0; k <= j; ++k) {
+                        cti += jobs[job_orders[k]].processing_times[i];
+                    }
+                    if (cti > max_ct) {
+                        max_ct = cti;
+                    }
+                }
+                
+                completion_times[j] = max_ct;
+                wct += max_ct * jobs[job_orders[j]].weight;
+            }
+            
+            if (wct < best_wct) {
+                best_wct = wct;
+                best_order = job_orders;
+                best_ct = completion_times;
+            }
+        } while(next_permutation(job_orders.begin(), job_orders.end()));
+        
+        return COS_solution(num_jobs, best_wct, best_order, best_ct);
+    }
+    
+    COS_solution approximate() const {
         //Initialization step
         
         COS_solution sol(num_jobs);
         vector<double> adj_weights(num_jobs);
         vector<int> loads(num_machines, 0);
+        vector<bool> is_scheduled(num_jobs, false);
+        
         for (int i = 0; i < num_machines; ++i) {
             for (int j = 0; j < num_jobs; ++j) {
                 loads[i] += jobs[j].processing_times[i];
@@ -78,9 +174,9 @@ public:
             double min_ratio = numeric_limits<double>::max(); //theta
             int next_job = 0; //sigma
             for (int j = 0; j < num_jobs; ++j) {
-                if (!jobs[j].is_scheduled) {
-                    double ratio = jobs[j].weight / jobs[j].processing_times[mu];
-                    if (min_ratio < ratio) {
+                if (!is_scheduled[j]) {
+                    double ratio = adj_weights[j] / jobs[j].processing_times[mu];
+                    if (min_ratio > ratio) {
                         min_ratio = ratio;
                         next_job = j;
                     }
@@ -89,14 +185,15 @@ public:
             
             //Adjust remaining weights
             for(int j = 0; j < num_jobs; ++j) {
-                if (!jobs[j].is_scheduled) {
-                    jobs[j].weight -= (min_ratio * jobs[j].processing_times[mu]);
+                if (!is_scheduled[j]) {
+                    adj_weights[j] -= (min_ratio * jobs[j].processing_times[mu]);
                 }
             }
             
             //Record solution
             sol.order[k] = next_job;
             sol.completion_times[k] = max_load;
+            sol.wct += sol.completion_times[k] * jobs[next_job].weight;
             
             //Update machine loads
             for (int i = 0; i < num_machines; ++i) {
@@ -104,10 +201,46 @@ public:
             }
             
             //Update unscheduled jobs
-            jobs[next_job].is_scheduled = true;
+            is_scheduled[next_job] = true;
         }
         
         return sol;
     }
+};
+
+
+int main() {
+    srand (time(NULL));
+    
+    int num_jobs = 3;
+    int num_machines = 3;
+    int max_processing_time = 100;
+    int max_weight = 25;
+    vector<COS_job> jobs(num_jobs);
+    
+    for (int j = 0; j < num_jobs; ++j) {
+        vector<int> pj(num_machines);
+        for (int i = 0; i < num_machines; ++i) {
+            pj[i] = rand() % max_processing_time;
+        }
+        double weight = (rand() % max_weight) * 1.0;
+        
+        jobs[j] = COS_job(weight, pj);
+    }
+    
+    COS_instance open_shop(num_jobs, num_machines, jobs);
+    open_shop.print();
+    COS_solution apr = open_shop.approximate();
+    COS_solution sol = open_shop.solve();
+    
+    cout << "\nApproximate solution: \n";
+    apr.print(jobs);
+    cout << "\nActual solution: \n";
+    sol.print(jobs);
+    
+    return 0;
 }
+
+
+
 
