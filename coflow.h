@@ -40,6 +40,6 @@ public:
     
     void print();
     
-    CF_solution approx2(std::vector<int> &flow_order) const;
+    CF_solution approx2(const std::vector<int> &flow_order) const;
 
 };

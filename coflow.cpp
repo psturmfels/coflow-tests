@@ -105,16 +105,19 @@ void CF_instance::print() {
     }
 }
 
-CF_solution CF_instance::approx2(vector<int> &flow_order) const {
+CF_solution CF_instance::approx2(const vector<int> &flow_order) const {
     //Initialization
     vector<Flow> f = flows;
     CF_solution apr2(num_flows);
     int time_so_far = 0;
     
     //Moving Back Edges
-    for (int j = 0; j < num_flows - 1; ++j) {
+    for (int j = 0; j < num_flows; ++j) {
         if (f[flow_order[j]].p_sum > 0) {
+        
             int delta_j_max = f[flow_order[j]].get_delta();
+            
+            //Run greedy pulling
             for (int k = j + 1; k < num_flows; ++k) {
                 if (f[flow_order[k]].p_sum > 0) {
                     //Calculate maximum degree of j
@@ -135,7 +138,7 @@ CF_solution CF_instance::approx2(vector<int> &flow_order) const {
                                 f[flow_order[k]].processing_times[i][o] -= 1;
                                 f[flow_order[k]].p_sum -= 1;
                                     
-                                    ++delta_ji;
+                                ++delta_ji;
                                 ++delta_jo;
                             }
                             if (f[flow_order[k]].p_sum == 0) {
@@ -145,9 +148,11 @@ CF_solution CF_instance::approx2(vector<int> &flow_order) const {
                     }
                 }
             }
+            
+            
             //At this point, everything from 0 to j has been scheduled.
             time_so_far += delta_j_max;
-            apr2.completion_times[flow_order[j]] = time_so_far;
+            apr2.completion_times[j] = time_so_far;
             apr2.wct += time_so_far * f[flow_order[j]].weight;
         }
     }
