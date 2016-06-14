@@ -23,8 +23,9 @@ Flow::Flow() {
 void Flow::print() {
     cout << "  ";
     for (unsigned o = 0; o < processing_times.size(); ++o) {
-        cout << (o + 1) << " ";
+        cout << (o + 1) << "  ";
     }
+    cout << endl;
     
     for (unsigned i = 0; i < processing_times.size(); ++i) {
         cout << (i + 1) << " ";
@@ -97,8 +98,8 @@ CF_instance::CF_instance(const int N, const int M, vector<Flow> &f) {
 void CF_instance::print() {
     cout << "Outputs down, Inputs across\n";
     for (int f = 0; f < num_flows; ++f) {
-        cout << "Flow " << f << " with weight " << flows[f].weight << " ";
-        cout << "and max delta: " << get_delta() << endl;
+        cout << "Flow " << (f + 1) << " with weight " << flows[f].weight << " ";
+        cout << "and max delta: " << flows[f].get_delta() << endl;
         flows[f].print();
         cout << endl;
     }
@@ -113,15 +114,15 @@ CF_solution CF_instance::approx2(vector<int> &flow_order) const {
     //Moving Back Edges
     for (int j = 0; j < num_flows - 1; ++j) {
         if (f[flow_order[j]].p_sum > 0) {
-            int delta_j_max = f[flow_order[j]].get_delta;
-            for (int k = j + 1; k < num_flows) {
+            int delta_j_max = f[flow_order[j]].get_delta();
+            for (int k = j + 1; k < num_flows; ++k) {
                 if (f[flow_order[k]].p_sum > 0) {
                     //Calculate maximum degree of j
                     for (int i = 0; i < num_ports; ++i) {
                         
                         //Calculate degree of input port to move to
                         int delta_ji = f[flow_order[j]].get_delta_i(i);
-                        for (int o = 0; o < num_port; ++o) {
+                        for (int o = 0; o < num_ports; ++o) {
                             
                             //Calculate degree of output port to move to
                             int delta_jo = f[flow_order[j]].get_delta_o(o);
@@ -150,8 +151,5 @@ CF_solution CF_instance::approx2(vector<int> &flow_order) const {
             apr2.wct += time_so_far * f[flow_order[j]].weight;
         }
     }
+    return apr2;
 }
-
-
-
-
