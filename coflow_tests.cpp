@@ -44,7 +44,7 @@ void bad_test() {
     cout << "Reduction:\n";
     reduced_apr.print();
     
-    cout << "Solution: \n";
+    cout << "\nSolution: \n";
     apr2.print();
 }
 
@@ -84,21 +84,73 @@ void all_tests() {
         //cout << endl;
         //cout << "Solution:";
         //apr2.print();
-        cout << reduced_apr.wct << " " << apr2.wct << "\n";
         if (reduced_apr.wct < apr2.wct) {
             coflow.print();
             cout << "Reduction:\n";
             reduced_apr.print();
             cout << endl;
-            cout << "Solution:";
+            cout << "Solution:\n";
             apr2.print();
         }
     }
 }
 
+void interactive_mode() {
+    char input = 'y';
+    do {
+        int num_flows;
+        int num_ports;
+        int max_processing_time;
+        int max_weight;
+        cout << "Enter integer number of flows: ";
+        cin >> num_flows;
+        cout << "Enter integer number of ports: ";
+        cin >> num_ports;
+        cout << "Enter integer max processing time on an edge: ";
+        cin >> max_processing_time;
+        cout << "Enter integer max flow weight: ";
+        cin >> max_weight;
+        
+        vector<Flow> flows;
+        flows.reserve(num_flows);
+        
+        for (int f = 0; f < num_flows; ++f) {
+            double weight = rand() % max_weight + 1;
+            
+            vector<vector<int> > pi(num_ports, vector<int>(num_ports, 0));
+            
+            for (int i = 0; i < num_ports; ++i)
+                for (int o = 0; o < num_ports; ++o)
+                    pi[i][o] = rand() % max_processing_time + 1;
+            
+            Flow flow(weight, pi);
+            flows.push_back(flow);
+        }
+        
+        CF_instance coflow(num_flows, num_ports, flows);
+        coflow.print();
+        
+        pair<CF_solution, COS_solution> sol = coflow.approx2();
+        CF_solution apr2 = sol.first;
+        COS_solution reduced_apr = sol.second;
+        
+        cout << "Reduction:\n";
+        reduced_apr.print();
+        
+        
+        cout << endl;
+        cout << "Solution:\n";
+        apr2.print();
+        
+        
+        cout << "Enter y to continue, any other character to quit: ";
+        cin >> input;
+    } while (input == 'y');
+}
+
 
 int main() {
-    bad_test();
+    interactive_mode();
     return 0;
 }
 

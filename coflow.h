@@ -1,3 +1,5 @@
+#ifndef COFLOW
+#define COFLOW
 #include <vector>
 #include <utility>
 #include "open_shop.h"
@@ -45,3 +47,4 @@ public:
     
     std::pair<CF_solution, COS_solution> approx2() const;
 };
+#endif

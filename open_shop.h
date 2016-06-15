@@ -1,3 +1,5 @@
+#ifndef open_shop
+#define open_shop
 #include <vector>
 
 class COS_job {
@@ -39,4 +41,5 @@ public:
     COS_solution approximate() const;
 };
 
+#endif
 

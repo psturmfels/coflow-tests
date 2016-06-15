@@ -88,7 +88,7 @@ CF_solution::CF_solution(const int N, const double w, std::vector<int> &ct) {
 }
 
 void CF_solution::print() const {
-    cout << "\nCtimes: ";
+    cout << "Ctimes: ";
     for (int j = 0; j < num_flows; ++j) {
         cout << completion_times[j] << " ";
     }
