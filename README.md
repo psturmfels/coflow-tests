@@ -42,10 +42,10 @@ Below is the optimal solution to the problem. The coflows have been rearranged,
 and each can be completed in its delta time – the maximum column or row sum – using
 a matching algorithm.
 
-Solution:
-Order: 1 2 
-Completion Times: 14 26 
-Sum of weighted completions times:  3 * 14 + 2 * 26 = 94
+Solution: 
+Order: 1 2  
+Completion Times: 14 26  
+Sum of weighted completions times:  3 * 14 + 2 * 26 = 94  
 
 | Flow 1, w1 = 3| out1          | out2  |
 | ------------- | ------------- | ----- |
