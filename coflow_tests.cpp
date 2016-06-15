@@ -11,8 +11,6 @@ using namespace std;
 void bad_test() {
     int num_flows = 2;
     int num_ports = 10;
-    int max_processing_time = 15;
-    int max_weight = 4;
     vector<Flow> flows;
     vector<vector<int> > pi_first(num_ports, vector<int>(num_ports, 0));
     
@@ -51,11 +49,15 @@ void bad_test() {
 void all_tests() {
     srand (time(NULL));
     int num_flows = 2;
-    int num_ports = 2;
-    int max_processing_time = 15;
+    int num_ports = 3;
+    int max_processing_time = 4;
     int max_weight = 4;
+    CF_instance CFImax;
+    CF_solution CFSmax;
+    COS_solution COSmax;
+    double biggest_fold_change = 1.0;
     
-    for (int i = 0; i < 100000; ++i) {
+    for (int i = 0; i < 10000000; ++i) {
         vector<Flow> flows;
         flows.reserve(num_flows);
         
@@ -66,9 +68,13 @@ void all_tests() {
             
             for (int i = 0; i < num_ports; ++i)
                 for (int o = 0; o < num_ports; ++o)
-                    pi[i][o] = rand() % max_processing_time + 1;
+                    pi[i][o] = rand() % max_processing_time;
             
             Flow flow(weight, pi);
+            
+            if (flow.get_delta() == 0)
+                flow.processing_times[0][0] = 1;
+            
             flows.push_back(flow);
         }
         
@@ -85,17 +91,27 @@ void all_tests() {
         //cout << "Solution:";
         //apr2.print();
         if (reduced_apr.wct < apr2.wct) {
-            coflow.print();
-            cout << "Reduction:\n";
-            reduced_apr.print();
-            cout << endl;
-            cout << "Solution:\n";
-            apr2.print();
+            if ((apr2.wct / reduced_apr.wct) > biggest_fold_change)
+            {
+                biggest_fold_change = (apr2.wct / reduced_apr.wct);
+                cout << biggest_fold_change << endl;
+                CFImax = coflow;
+                CFSmax = apr2;
+                COSmax = reduced_apr;
+            }
         }
     }
+    
+    CFImax.print();
+    cout << "Reduction:\n";
+    COSmax.print();
+    cout << endl;
+    cout << "Solution:\n";
+    CFSmax.print();
 }
 
 void interactive_mode() {
+    srand (time(NULL));
     char input = 'y';
     do {
         int num_flows;
@@ -150,7 +166,13 @@ void interactive_mode() {
 
 
 int main() {
-    interactive_mode();
+    char input;
+    cout << "Enter i to run in interactive mode, or a to run randomized tests: ";
+    cin >> input;
+    if (input == 'i')
+        interactive_mode();
+    else if (input == 'a')
+        all_tests();
     return 0;
 }
 

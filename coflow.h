@@ -29,6 +29,7 @@ public:
     double wct;
     int num_flows;
     
+    CF_solution();
     CF_solution(const int N);
     CF_solution(const int N, const double w, std::vector<int> &ct);
     
@@ -42,7 +43,7 @@ public:
     int num_flows;
     
     CF_instance(const int N, const int M, std::vector<Flow> &f);
-    
+    CF_instance();
     void print() const;
     
     std::pair<CF_solution, COS_solution> approx2() const;

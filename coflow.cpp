@@ -75,6 +75,11 @@ int Flow::get_delta_o(int o) const {
     return delta;
 }
 
+CF_solution::CF_solution() {
+    num_flows = 0;
+    wct = 0;
+}
+
 CF_solution::CF_solution(const int N) {
     num_flows = N;
     completion_times.resize(N, 0);
@@ -105,6 +110,11 @@ CF_instance::CF_instance(const int N, const int M, vector<Flow> &f) {
     num_ports = M;
     num_flows = N;
     flows = f;
+}
+
+CF_instance::CF_instance() {
+    num_ports = 0;
+    num_flows = 0;
 }
 
 void CF_instance::print() const {

@@ -19,6 +19,7 @@ public:
     double wct;
     int num_jobs;
     
+    COS_solution();
     COS_solution(const int N);
     
     COS_solution(const int N, const double w, std::vector<int> &o, std::vector<int> &ct);

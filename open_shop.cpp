@@ -16,6 +16,10 @@ COS_job::COS_job() {
     weight = -1;
 }
 
+COS_solution::COS_solution() {
+    num_jobs = 0;
+    wct = 0;
+}
 
 COS_solution::COS_solution(const int N) {
     num_jobs = N;
