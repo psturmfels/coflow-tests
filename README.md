@@ -22,18 +22,19 @@ The algorithm implemented here is a greedy 4-approximation algorithm based on
 and [Manish Purohit's](http://www.cs.umd.edu/~manishp/) thesis.
 
 ### Example
-M = 2, N = 2
-Flow 1, w1 = 3
-	    out1	out2	
-	    –––––	–––––	
-in1 |	5	    5	
-in2 |	0	    9 	
+M = 2, N = 2  
 
-Flow 2, w2 = 2
-	    out1	out2	
-	    –––––	–––––	
-in1 |	1	    3	
-in2 |	3	    9
+| Flow 1, w1 = 3| out1          | out2  |
+| ------------- | ------------- | ----- |
+| in1		| 5 		|   5 	|
+| in2     	| 0      	|   9 	|
+
+
+| Flow 2, w2 = 2| out1          | out2  |
+| ------------- | ------------- | ----- |
+| in1		| 1 		|   3 	|
+| in2     	| 3      	|   9 	|
+
 
 The above defines an instance of the problem. In the example, 
 Flow 1 has 9 units of data to send from input 2 to output 2.
@@ -46,16 +47,15 @@ Order: 1 2
 Completion Times: 14 26 
 Sum of weighted completions times:  3 * 14 + 2 * 26 = 94
 
-Flow 1 with weight 3 and max delta: 14
-	out1	out2	
-	–––––	–––––	
-in1 |	6	5	
-in2 |	3	9	
+| Flow 1, w1 = 3| out1          | out2  |
+| ------------- | ------------- | ----- |
+| in1		| 6 		|   5 	|
+| in2     	| 3      	|   9 	|
 
-Flow 2 with weight 2 and max delta: 12
-	out1	out2	
-	–––––	–––––	
-in1 |	0	3	
-in2 |	0	9
+
+| Flow 2, w2 = 2| out1          | out2  |
+| ------------- | ------------- | ----- |
+| in1		| 0 		|   3 	|
+| in2     	| 0      	|   9 	|
 
 
