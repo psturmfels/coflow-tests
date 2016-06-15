@@ -31,14 +31,10 @@ COS_solution::COS_solution(const int N, const double w, vector<int> &o, vector<i
     completion_times = move(ct);
 }
 
-void COS_solution::print(const vector<COS_job> &jobs) {
+void COS_solution::print() const {
     cout << "Orders: ";
     for (int j = 0; j < num_jobs; ++j) {
         cout << (order[j] + 1) << " ";
-    }
-    cout << endl << "Weights: ";
-    for (int j = 0; j < num_jobs; ++j) {
-        cout << jobs[order[j]].weight << " ";
     }
     cout << "\nCtimes: ";
     for (int j = 0; j < num_jobs; ++j) {
@@ -54,7 +50,7 @@ COS_instance::COS_instance(const int N, const int M, vector<COS_job> &j) {
     jobs = j;
 }
 
-void COS_instance::print() {
+void COS_instance::print() const {
     cout << "Jobs across, machines down\n";
     cout << "  ";
     

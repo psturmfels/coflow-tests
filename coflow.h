@@ -1,4 +1,6 @@
 #include <vector>
+#include <utility>
+#include "open_shop.h"
 
 class Flow {
 public:
@@ -10,11 +12,11 @@ public:
     
     Flow();
     
-    void print();
+    void print() const;
     
-    int get_delta();
-    int get_delta_i(int i);
-    int get_delta_o(int o);
+    int get_delta() const;
+    int get_delta_i(int i) const;
+    int get_delta_o(int o) const;
 };
 
 
@@ -28,7 +30,7 @@ public:
     CF_solution(const int N);
     CF_solution(const int N, const double w, std::vector<int> &ct);
     
-    void print();
+    void print() const;
 };
 
 class CF_instance {
@@ -39,8 +41,7 @@ public:
     
     CF_instance(const int N, const int M, std::vector<Flow> &f);
     
-    void print();
+    void print() const;
     
-    CF_solution approx2(const std::vector<int> &flow_order) const;
-
+    std::pair<CF_solution, COS_solution> approx2() const;
 };

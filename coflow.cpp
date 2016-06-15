@@ -2,7 +2,9 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
+#include <utility>
 #include "coflow.h"
+#include "open_shop.h"
 
 using namespace std;
 
@@ -20,7 +22,7 @@ Flow::Flow() {
     p_sum = -1;
 }
 
-void Flow::print() {
+void Flow::print() const {
     cout << "\t";
     for (unsigned o = 0; o < processing_times.size(); ++o) {
         cout << "out" << (o + 1) << "\t";
@@ -40,7 +42,7 @@ void Flow::print() {
     }
 }
 
-int Flow::get_delta() {
+int Flow::get_delta() const {
     int max_delta = 0;
     for (unsigned i = 0; i < processing_times.size(); ++i) {
         int delta_i = 0;
@@ -59,14 +61,14 @@ int Flow::get_delta() {
     return max_delta;
 }
 
-int Flow::get_delta_i(int i) {
+int Flow::get_delta_i(int i) const {
     int delta = 0;
     for (unsigned o = 0; o < processing_times.size(); ++o)
         delta += processing_times[i][o];
     return delta;
 }
 
-int Flow::get_delta_o(int o) {
+int Flow::get_delta_o(int o) const {
     int delta = 0;
     for (unsigned i = 0; i < processing_times.size(); ++i)
         delta += processing_times[i][o];
@@ -85,7 +87,7 @@ CF_solution::CF_solution(const int N, const double w, std::vector<int> &ct) {
     wct = w;
 }
 
-void CF_solution::print() {
+void CF_solution::print() const {
     cout << "\nCtimes: ";
     for (int j = 0; j < num_flows; ++j) {
         cout << completion_times[j] << " ";
@@ -105,7 +107,7 @@ CF_instance::CF_instance(const int N, const int M, vector<Flow> &f) {
     flows = f;
 }
 
-void CF_instance::print() {
+void CF_instance::print() const {
     cout << "Outputs down, Inputs across\n";
     for (int f = 0; f < num_flows; ++f) {
         cout << "Flow " << (f + 1) << " with weight " << flows[f].weight << " ";
@@ -115,7 +117,26 @@ void CF_instance::print() {
     }
 }
 
-CF_solution CF_instance::approx2(const vector<int> &flow_order) const {
+pair<CF_solution, COS_solution> CF_instance::approx2() const {
+    //Reduction
+    vector<COS_job> jobs;
+    jobs.reserve(num_flows);
+    for (int f = 0; f < num_flows; ++f) {
+        vector<int> pi(2 * num_ports, 0);
+        
+        for (int i = 0; i < num_ports; ++i)
+            pi[i] = flows[f].get_delta_i(i);
+        
+        for (int o = 0; o < num_ports; ++o)
+            pi[num_ports + o] = flows[f].get_delta_o(o);
+        
+        COS_job job(flows[f].weight, pi);
+        jobs.push_back(job);
+    }
+    
+    COS_instance reduction(num_flows, 2 * num_ports, jobs);
+    COS_solution reduced_apr = reduction.approximate();
+ 
     //Initialization
     vector<Flow> f = flows;
     CF_solution apr2(num_flows);
@@ -123,36 +144,36 @@ CF_solution CF_instance::approx2(const vector<int> &flow_order) const {
     
     //Moving Back Edges
     for (int j = 0; j < num_flows; ++j) {
-        if (f[flow_order[j]].p_sum > 0) {
+        if (f[reduced_apr.order[j]].p_sum > 0) {
         
-            int delta_j_max = f[flow_order[j]].get_delta();
+            int delta_j_max = f[reduced_apr.order[j]].get_delta();
             
             //Run greedy pulling
             for (int k = j + 1; k < num_flows; ++k) {
-                if (f[flow_order[k]].p_sum > 0) {
+                if (f[reduced_apr.order[k]].p_sum > 0) {
                     //Calculate maximum degree of j
                     for (int i = 0; i < num_ports; ++i) {
                         
                         //Calculate degree of input port to move to
-                        int delta_ji = f[flow_order[j]].get_delta_i(i);
+                        int delta_ji = f[reduced_apr.order[j]].get_delta_i(i);
                         for (int o = 0; o < num_ports; ++o) {
                             
                             //Calculate degree of output port to move to
-                            int delta_jo = f[flow_order[j]].get_delta_o(o);
+                            int delta_jo = f[reduced_apr.order[j]].get_delta_o(o);
                             
-                            while (f[flow_order[k]].processing_times[i][o] > 0 &&
+                            while (f[reduced_apr.order[k]].processing_times[i][o] > 0 &&
                                    delta_j_max > delta_ji && delta_j_max > delta_jo) {
-                                f[flow_order[j]].processing_times[i][o] += 1;
-                                f[flow_order[j]].p_sum += 1;
+                                f[reduced_apr.order[j]].processing_times[i][o] += 1;
+                                f[reduced_apr.order[j]].p_sum += 1;
                                 
-                                f[flow_order[k]].processing_times[i][o] -= 1;
-                                f[flow_order[k]].p_sum -= 1;
+                                f[reduced_apr.order[k]].processing_times[i][o] -= 1;
+                                f[reduced_apr.order[k]].p_sum -= 1;
                                     
                                 ++delta_ji;
                                 ++delta_jo;
                             }
-                            if (f[flow_order[k]].p_sum == 0) {
-                                apr2.completion_times[flow_order[k]] = apr2.completion_times[flow_order[j]];
+                            if (f[reduced_apr.order[k]].p_sum == 0) {
+                                apr2.completion_times[reduced_apr.order[k]] = apr2.completion_times[reduced_apr.order[j]];
                             }
                         }
                     }
@@ -163,9 +184,9 @@ CF_solution CF_instance::approx2(const vector<int> &flow_order) const {
             //At this point, everything from 0 to j has been scheduled.
             time_so_far += delta_j_max;
             apr2.completion_times[j] = time_so_far;
-            apr2.wct += time_so_far * f[flow_order[j]].weight;
+            apr2.wct += time_so_far * f[reduced_apr.order[j]].weight;
         }
     }
     apr2.flows = move(f);
-    return apr2;
+    return pair<CF_solution, COS_solution>(apr2, reduced_apr);
 }

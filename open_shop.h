@@ -21,7 +21,7 @@ public:
     
     COS_solution(const int N, const double w, std::vector<int> &o, std::vector<int> &ct);
     
-    void print(const std::vector<COS_job> &jobs);
+    void print() const;
 };
 
 class COS_instance {
@@ -32,7 +32,7 @@ public:
     
     COS_instance(const int N, const int M, std::vector<COS_job> &j);
     
-    void print();
+    void print() const;
     
     COS_solution solve() const;
     
