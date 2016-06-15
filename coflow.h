@@ -21,6 +21,7 @@ public:
 class CF_solution {
 public:
     std::vector<int> completion_times;
+    std::vector<Flow> flows;
     double wct;
     int num_flows;
     

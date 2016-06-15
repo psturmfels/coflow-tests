@@ -21,16 +21,20 @@ Flow::Flow() {
 }
 
 void Flow::print() {
-    cout << "  ";
+    cout << "\t";
     for (unsigned o = 0; o < processing_times.size(); ++o) {
-        cout << (o + 1) << "  ";
+        cout << "out" << (o + 1) << "\t";
+    }
+    cout << endl << "\t";
+    for (unsigned o = 0; o < processing_times.size(); ++o) {
+        cout << "–––––\t";
     }
     cout << endl;
     
     for (unsigned i = 0; i < processing_times.size(); ++i) {
-        cout << (i + 1) << " ";
+        cout << "in" << (i + 1) << " |\t";
         for (unsigned o = 0; o < processing_times.size(); ++o) {
-            cout << processing_times[i][o] << " ";
+            cout << processing_times[i][o] << "\t";
         }
         cout << endl;
     }
@@ -87,6 +91,12 @@ void CF_solution::print() {
         cout << completion_times[j] << " ";
     }
     cout << "\nSum of weighted completions times: " << wct << endl;
+    for (int f = 0; f < num_flows; ++f) {
+        cout << "Flow " << (f + 1) << " with weight " << flows[f].weight << " ";
+        cout << "and max delta: " << flows[f].get_delta() << endl;
+        flows[f].print();
+        cout << endl;
+    }
 }
 
 CF_instance::CF_instance(const int N, const int M, vector<Flow> &f) {
@@ -156,5 +166,6 @@ CF_solution CF_instance::approx2(const vector<int> &flow_order) const {
             apr2.wct += time_so_far * f[flow_order[j]].weight;
         }
     }
+    apr2.flows = move(f);
     return apr2;
 }

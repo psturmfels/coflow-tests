@@ -10,10 +10,10 @@ using namespace std;
 int main() {
     srand (time(NULL));
     
-    int num_flows = 3;
-    int num_ports = 3;
-    int max_processing_time = 50;
-    int max_weight = 10;
+    int num_flows = 2;
+    int num_ports = 2;
+    int max_processing_time = 10;
+    int max_weight = 3;
     vector<Flow> flows;
     flows.reserve(num_flows);
     
@@ -51,8 +51,12 @@ int main() {
     CF_instance coflow(num_flows, num_ports, flows);
     coflow.print();
     
+    cout << "Reduction:\n";
     reduced_apr.print(jobs);
     CF_solution apr2 = coflow.approx2(reduced_apr.order);
+    
+    cout << endl; 
+    cout << "Solution:";
     apr2.print();
     return 0;
 }
